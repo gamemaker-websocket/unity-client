@@ -1,7 +1,7 @@
 {
     "name": "com.wsnet.unity",
     "displayName": "WSNet",
-    "version": "1.0",
+    "version": "1.0.0",
     "unity": "2018.1",
     "description": "CWebsocket-based Networking engine for unity.",
     "keywords": [
