@@ -1,0 +1,13 @@
+{
+    "name": "com.wsnet.boundingvolumes",
+    "displayName": "WSNet",
+    "version": "1.0",
+    "unity": "2018.1",
+    "description": "CWebsocket-based Networking engine for unity.",
+    "keywords": [
+        "networking",
+        "websocket",
+        "unity"
+    ],
+    "category": "Unity"
+}
