@@ -14,7 +14,7 @@ using System.Threading;
 /// - fix autojoin bug when change password
 /// </summary>
 
-namespace WebsocketNetworking
+namespace WSNet
 {
     public class Net
     {

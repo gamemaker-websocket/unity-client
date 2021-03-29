@@ -1,6 +1,6 @@
 ﻿
 //#define LOG_WEBSOCKET
-namespace WebsocketNetworking
+namespace WSNet
 {
     using System.Collections;
     using System.Collections.Generic;
