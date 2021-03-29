@@ -44,7 +44,7 @@ namespace WSNet
         private delegate void CommandDelegate (int startIndex, int count);
         readonly Dictionary<Command, CommandDelegate> commands;
 
-        private delegate void MessageTypeDelegate (Msg message, Player sender, int startIndex, int count);
+        private delegate void MessageTypeDelegate (ushort message, Player sender, int startIndex, int count);
         readonly Dictionary<MessageType, MessageTypeDelegate> messageDecoders;
         readonly CancellationTokenSource ctsSend = new CancellationTokenSource();
         readonly MemoryStream stream = new MemoryStream(1024);
@@ -118,6 +118,7 @@ namespace WSNet
 
             messageDecoders = new Dictionary<MessageType, MessageTypeDelegate>()
             {
+                { MessageType.JSON, MessageDecoderJSON },
                 { MessageType.ByteArray, MessageDecoderByteArray },
                 { MessageType.Byte, MessageDecoderByte },
                 { MessageType.Int, MessageDecoderInt },
@@ -125,7 +126,6 @@ namespace WSNet
                 { MessageType.Float, MessageDecoderFloat },
                 { MessageType.Double, MessageDecoderDouble },
                 { MessageType.String, MessageDecoderString },
-                { MessageType.JSON, MessageDecoderJSON },
                 { MessageType.Pose, MessageDecoderPose },
                 { MessageType.Quaternion, MessageDecoderQuaternion },
                 { MessageType.Vector3, MessageDecoderVector3 },
@@ -230,19 +230,20 @@ namespace WSNet
 
         //json
         public delegate void CallbackMessageJSON<T> (Player sender, T value);
-        private readonly Dictionary<Msg, Delegate> callbacksJSON = new Dictionary<Msg, Delegate>();
-        private readonly Dictionary<Msg, Type> callbacksJSONType = new Dictionary<Msg, Type>();
+        private readonly Dictionary<ushort, Delegate> callbacksJSON = new Dictionary<ushort, Delegate>();
+        private readonly Dictionary<ushort, Type> callbacksJSONType = new Dictionary<ushort, Type>();
 
-        public void OnJSON<T> (Msg id, CallbackMessageJSON<T> callback)
+        public void OnJSON<T> (Enum id, CallbackMessageJSON<T> callback)
         {
-            if (callbacksJSON.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksJSON.ContainsKey(shortID))
             {
                 Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
                 return;
             }
 
-            callbacksJSON[id] = callback;
-            callbacksJSONType[id] = typeof(T);
+            callbacksJSON[shortID] = callback;
+            callbacksJSONType[shortID] = typeof(T);
         }
 
         //byte array
@@ -252,154 +253,164 @@ namespace WSNet
         /// <param name="readr">temp binaryreader to read the data, don't use it oustide this function</param>
         /// <param name="count">number of bytes</param>
         public delegate void CallbackMessageByteArray (Player sender, BinaryReader reader, int count);
-        private readonly Dictionary<Msg, CallbackMessageByteArray> callbacksRaw = new Dictionary<Msg, CallbackMessageByteArray>();
-        public void On (Msg id, CallbackMessageByteArray callback)
+        private readonly Dictionary<ushort, CallbackMessageByteArray> callbacksRaw = new Dictionary<ushort, CallbackMessageByteArray>();
+        public void On (Enum id, CallbackMessageByteArray callback)
         {
-            if (callbacksRaw.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksRaw.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with id = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksRaw[id] = callback;
+            callbacksRaw[shortID] = callback;
         }
 
         //byte
         public delegate void CallbackMessageByte (Player sender, byte value);
-        private readonly Dictionary<Msg, CallbackMessageByte> callbacksByte = new Dictionary<Msg, CallbackMessageByte>();
-        public void On (Msg id, CallbackMessageByte callback)
+        private readonly Dictionary<ushort, CallbackMessageByte> callbacksByte = new Dictionary<ushort, CallbackMessageByte>();
+        public void On (Enum id, CallbackMessageByte callback)
         {
-            if (callbacksByte.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksByte.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with id = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksByte[id] = callback;
+            callbacksByte[shortID] = callback;
         }
 
         //int
         public delegate void CallbackMessageInt (Player sender, int value);
-        private readonly Dictionary<Msg, CallbackMessageInt> callbacksInt = new Dictionary<Msg, CallbackMessageInt>();
-        public void On (Msg id, CallbackMessageInt callback)
+        private readonly Dictionary<ushort, CallbackMessageInt> callbacksInt = new Dictionary<ushort, CallbackMessageInt>();
+        public void On (Enum id, CallbackMessageInt callback)
         {
-            if (callbacksInt.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksInt.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with id = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksInt[id] = callback;
+            callbacksInt[shortID] = callback;
         }
 
         //long
         public delegate void CallbackMessageLong (Player sender, long value);
-        private readonly Dictionary<Msg, CallbackMessageLong> callbacksLong = new Dictionary<Msg, CallbackMessageLong>();
-        public void On (Msg id, CallbackMessageLong callback)
+        private readonly Dictionary<ushort, CallbackMessageLong> callbacksLong = new Dictionary<ushort, CallbackMessageLong>();
+        public void On (Enum id, CallbackMessageLong callback)
         {
-            if (callbacksLong.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksLong.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with id = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksLong[id] = callback;
+            callbacksLong[shortID] = callback;
         }
 
         //float
         public delegate void CallbackMessageFloat (Player sender, float value);
-        private readonly Dictionary<Msg, CallbackMessageFloat> callbacksFloat = new Dictionary<Msg, CallbackMessageFloat>();
-        public void On (Msg id, CallbackMessageFloat callback)
+        private readonly Dictionary<ushort, CallbackMessageFloat> callbacksFloat = new Dictionary<ushort, CallbackMessageFloat>();
+        public void On (Enum id, CallbackMessageFloat callback)
         {
-            if (callbacksFloat.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksFloat.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with shortID = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksFloat[id] = callback;
+            callbacksFloat[shortID] = callback;
         }
 
         //double
         public delegate void CallbackMessageDouble (Player sender, double value);
-        private readonly Dictionary<Msg, CallbackMessageDouble> callbacksDouble = new Dictionary<Msg, CallbackMessageDouble>();
-        public void On (Msg id, CallbackMessageDouble callback)
+        private readonly Dictionary<ushort, CallbackMessageDouble> callbacksDouble = new Dictionary<ushort, CallbackMessageDouble>();
+        public void On (Enum id, CallbackMessageDouble callback)
         {
-            if (callbacksDouble.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksDouble.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with shortID = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksDouble[id] = callback;
+            callbacksDouble[shortID] = callback;
         }
 
         //string
         public delegate void CallbackMessageString (Player sender, string value);
-        private readonly Dictionary<Msg, CallbackMessageString> callbacksString = new Dictionary<Msg, CallbackMessageString>();
-        public void On (Msg id, CallbackMessageString callback)
+        private readonly Dictionary<ushort, CallbackMessageString> callbacksString = new Dictionary<ushort, CallbackMessageString>();
+        public void On (Enum id, CallbackMessageString callback)
         {
-            if (callbacksString.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksString.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with shortID = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksString[id] = callback;
+            callbacksString[shortID] = callback;
         }
 
 
         //vector3
         public delegate void CallbackMessageVector3 (Player sender, Vector3 value);
-        private readonly Dictionary<Msg, CallbackMessageVector3> callbacksVector3 = new Dictionary<Msg, CallbackMessageVector3>();
-        public void On (Msg id, CallbackMessageVector3 callback)
+        private readonly Dictionary<ushort, CallbackMessageVector3> callbacksVector3 = new Dictionary<ushort, CallbackMessageVector3>();
+        public void On (Enum id, CallbackMessageVector3 callback)
         {
-            if (callbacksVector3.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksVector3.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with shortID = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksVector3[id] = callback;
+            callbacksVector3[shortID] = callback;
         }
 
         //quaternion
         public delegate void CallbackMessageQuaternion (Player sender, Quaternion value);
-        private readonly Dictionary<Msg, CallbackMessageQuaternion> callbacksQuaternion = new Dictionary<Msg, CallbackMessageQuaternion>();
-        public void On (Msg id, CallbackMessageQuaternion callback)
+        private readonly Dictionary<ushort, CallbackMessageQuaternion> callbacksQuaternion = new Dictionary<ushort, CallbackMessageQuaternion>();
+        public void On (Enum id, CallbackMessageQuaternion callback)
         {
-            if (callbacksQuaternion.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksQuaternion.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with shortID = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksQuaternion[id] = callback;
+            callbacksQuaternion[shortID] = callback;
         }
 
         //pose
         public delegate void CallbackMessagePose (Player sender, Pose value);
-        private readonly Dictionary<Msg, CallbackMessagePose> callbacksPose = new Dictionary<Msg, CallbackMessagePose>();
-        public void On (Msg id, CallbackMessagePose callback)
+        private readonly Dictionary<ushort, CallbackMessagePose> callbacksPose = new Dictionary<ushort, CallbackMessagePose>();
+        public void On (Enum id, CallbackMessagePose callback)
         {
-            if (callbacksPose.ContainsKey(id))
+            ushort shortID = Convert.ToUInt16(id);
+            if (callbacksPose.ContainsKey(shortID))
             {
-                Debug.LogError("WSNet: a callback with id = (" + id + ") already exists.");
+                Debug.LogError("WSNet: a callback with shortID = (" + shortID + ") already exists.");
                 return;
             }
 
-            callbacksPose[id] = callback;
+            callbacksPose[shortID] = callback;
         }
 
         #endregion
 
         #region Send
-        private void WriteGameMessageHeader (Msg id, int playerId, MessageType type)
+        private void WriteGameMessageHeader (Enum id, int playerId, MessageType type)
         {
             sendWriter.Seek(0, SeekOrigin.Begin);
             sendWriter.Write((byte)Command.GameMessage);
             sendWriter.Write((byte)playerId);
-            sendWriter.Write((short)id);
+            sendWriter.Write(Convert.ToUInt16(id));
             sendWriter.Write((byte)type);
         }
 
@@ -409,10 +420,9 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="stream">the stream to send</param>
-        public void Send (Msg id, Player player, MemoryStream stream)
+        public void Send (Enum id, Player player, MemoryStream stream)
         {
             int count = (int)stream.Position;
-            stream.Seek(0, SeekOrigin.Begin);
             Send(id, player, stream.GetBuffer(), 0, count);
         }
 
@@ -422,7 +432,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="buffer">byte buffer</param>
-        public void Send (Msg id, Player player, byte[] buffer)
+        public void Send (Enum id, Player player, byte[] buffer)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -440,7 +450,7 @@ namespace WSNet
         /// <param name="buffer">byte buffer</param>
         /// <param name="index">the start position to read from</param>
         /// <param name="count">the number of bytes to read from the start position</param>
-        public void Send (Msg id, Player player, byte[] buffer, int index, int count)
+        public void Send (Enum id, Player player, byte[] buffer, int index, int count)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -456,7 +466,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">a byte</param>
-        public void SendByte (Msg id, Player player, byte value)
+        public void SendByte (Enum id, Player player, byte value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -471,7 +481,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">a byte</param>
-        public void SendByte (Msg id, Player player)
+        public void SendByte (Enum id, Player player)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -486,7 +496,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">a byte</param>
-        public void Send (Msg id, Player player, byte value)
+        public void Send (Enum id, Player player, byte value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -501,7 +511,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">player or null</param>
         /// <param name="value">integer value</param>
-        public void Send (Msg id, Player player, int value)
+        public void Send (Enum id, Player player, int value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -517,7 +527,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">integer 64bit value</param>
-        public void Send (Msg id, Player player, long value)
+        public void Send (Enum id, Player player, long value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -533,7 +543,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">floating point value</param>
-        public void Send (Msg id, Player player, float value)
+        public void Send (Enum id, Player player, float value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -548,7 +558,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">floating point value</param>
-        public void Send (Msg id, Player player, double value)
+        public void Send (Enum id, Player player, double value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -563,7 +573,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">the string to send</param>
-        public void Send (Msg id, Player player, string value)
+        public void Send (Enum id, Player player, string value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -578,7 +588,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">the vector3 to send</param>
-        public void Send (Msg id, Player player, Vector3 value)
+        public void Send (Enum id, Player player, Vector3 value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -595,7 +605,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">the quaternion to send</param>
-        public void Send (Msg id, Player player, Quaternion value)
+        public void Send (Enum id, Player player, Quaternion value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -613,7 +623,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">the pose to send</param>
-        public void Send (Msg id, Player player, Pose value)
+        public void Send (Enum id, Player player, Pose value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -634,7 +644,7 @@ namespace WSNet
         /// <param name="id">message id</param>
         /// <param name="player">the destination player (or null for All players)</param>
         /// <param name="value">the object to send</param>
-        public void SendJSON<T> (Msg id, Player player, T value)
+        public void SendJSON<T> (Enum id, Player player, T value)
         {
             int target = (player != null) ? player.id : ToAll;
 
@@ -1159,13 +1169,13 @@ namespace WSNet
             if (!playersMap.TryGetValue(senderId, out Player sender))
                 return;
 
-            Msg messageId = (Msg)ReadUShort(ref index);
+            ushort messageId = ReadUShort(ref index);
             MessageType messageType = (MessageType)buffer[index++];
 
 
             if (messageDecoders.TryGetValue(messageType, out MessageTypeDelegate function))
             {
-                //Debug.Log("GameMsg: " + messageId + ", " + messageType);
+                //Debug.Log("GameEnum: " + messageId + ", " + messageType);
                 function(messageId, sender, index, count);
             }
             else
@@ -1178,7 +1188,7 @@ namespace WSNet
         #endregion
 
         #region GameMessage Decoders
-        void MessageDecoderByteArray (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderByteArray (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksRaw.TryGetValue(messageId, out CallbackMessageByteArray function))
             {
@@ -1190,7 +1200,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderByte (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderByte (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksByte.TryGetValue(messageId, out CallbackMessageByte function))
             {
@@ -1199,7 +1209,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderInt (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderInt (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksInt.TryGetValue(messageId, out CallbackMessageInt function))
             {
@@ -1208,7 +1218,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderLong (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderLong (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksLong.TryGetValue(messageId, out CallbackMessageLong function))
             {
@@ -1217,7 +1227,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderFloat (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderFloat (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksFloat.TryGetValue(messageId, out CallbackMessageFloat function))
             {
@@ -1226,7 +1236,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderDouble (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderDouble (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksDouble.TryGetValue(messageId, out CallbackMessageDouble function))
             {
@@ -1235,7 +1245,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderString (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderString (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksString.TryGetValue(messageId, out CallbackMessageString function))
             {
@@ -1244,8 +1254,8 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderJSON (Msg messageId, Player sender, int index, int count)
-        {
+        void MessageDecoderJSON (ushort messageId, Player sender, int index, int count)
+        { 
             if (callbacksJSON.TryGetValue(messageId, out Delegate function))
             {
                 string value = ReadBinaryString(ref index);
@@ -1255,7 +1265,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderVector3 (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderVector3 (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksVector3.TryGetValue(messageId, out CallbackMessageVector3 function))
             {
@@ -1266,7 +1276,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderQuaternion (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderQuaternion (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksQuaternion.TryGetValue(messageId, out CallbackMessageQuaternion function))
             {
@@ -1278,7 +1288,7 @@ namespace WSNet
             }
         }
 
-        void MessageDecoderPose (Msg messageId, Player sender, int index, int count)
+        void MessageDecoderPose (ushort messageId, Player sender, int index, int count)
         {
             if (callbacksPose.TryGetValue(messageId, out CallbackMessagePose function))
             {
